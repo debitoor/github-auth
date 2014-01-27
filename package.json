@@ -1,0 +1,16 @@
+{
+  "name": "github-auth",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "dependencies": {
+    "routil-cookie": "0.0.1",
+    "cookie-signature": "1.0.1",
+    "async": "0.2.10",
+    "request": "2.33.0"
+  }
+}
