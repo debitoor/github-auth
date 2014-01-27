@@ -2,6 +2,14 @@
 
 A middleware for github authentication.
 
+## Installation
+
+You can install this module with npm
+
+```
+npm install github-auth
+```
+
 ## Usage
 
 You can use the middleware on a connect/express app like this.
