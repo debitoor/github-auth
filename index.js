@@ -19,7 +19,7 @@ module.exports = function(clientId, clientSecret, config) {
 	var secret = config.secret || 'asdasd123123';
 	var userAgent = config.ua || 'github-auth';
 
-	var isUser = function(accessToken, callback) {
+	var getUser = function(accessToken, callback) {
 		request('https://api.github.com/user?access_token='+accessToken, {
 			headers: {
 				'User-Agent': userAgent
@@ -32,7 +32,7 @@ module.exports = function(clientId, clientSecret, config) {
 			catch(e) { 
 				return callback(new Error(body), null);
 			}
-			callback(null, config.users.indexOf(json.login) !== -1, json.login);
+			callback(null, json.login);
 		});
 	};
 
@@ -57,7 +57,7 @@ module.exports = function(clientId, clientSecret, config) {
 			var orgLogins = json.map(function(obj) { return obj.organization.login; });
 			var authorized = teamNames.indexOf(config.team) !== -1 && orgLogins.indexOf(config.organization) !==1;
 
-			callback(null, authorized, config.organization);
+			callback(null, authorized);
 		});
 	};
 
@@ -79,7 +79,7 @@ module.exports = function(clientId, clientSecret, config) {
 			var orgLogins = json.map(function(obj) { return obj.login; });
 			var authorized = orgLogins.indexOf(config.organization) !==1;
 
-			callback(null, authorized, config.team);
+			callback(null, authorized);
 		});
 	};
 
@@ -102,29 +102,35 @@ module.exports = function(clientId, clientSecret, config) {
 			}, function(err, response, body) {
 				var resp = url.parse('/?'+body, true);
 				var accessToken = resp.query.access_token;
-				var checks = [];
 
-				if (config.users) checks.push(function(cb) { isUser(accessToken, cb); });
-				if (config.team) checks.push(function(cb) { isInTeam(accessToken, cb); });
-				if (config.team) checks.push(function(cb) { isInOrganization(accessToken, cb); });
-
-				async.parallel(checks, function(err, results) {
+				getUser(accessToken, function(err, ghusr) {
 					if (err) return next(err);
-					if (results.length === 0) return next(new Error('You have to add either users, team, or organizations to the config'));
 
-					var auth = true;
-					results.forEach(function(el) {
-						if (!el[0]) auth = false;
+					var checks = [];
+					if (config.users) checks.push(function(cb) { cb(null, config.users.indexOf(ghusr) !== 1); });
+					if (config.team) checks.push(function(cb) { isInTeam(accessToken, cb); });
+					if (config.team) checks.push(function(cb) { isInOrganization(accessToken, cb); });
+
+					async.parallel(checks, function(err, results) {
+						if (err) return next(err);
+						if (results.length === 0) return next(new Error('You have to add either users, team, or organizations to the config'));
+
+						var auth = true;
+						var uname;
+						results.forEach(function(el) {
+							if (!el) auth = false;
+						});
+
+						if (auth) {
+							setCookie(res, cookieName, cookieSign.sign(ghusr, secret));
+							next();
+						} else {
+							response.statusCode = 403;
+							res.end('User not authorized');
+						}
 					});
-
-					if (auth) {
-						setCookie(res, cookieName, cookieSign.sign('blah', secret));
-						next();
-					} else {
-						response.statusCode = 403;
-						res.end('User not authorized');
-					}
 				});
+				
 			});
 		} else {
 			var ghUrl = 'https://github.com/login/oauth/authorize?client_id='+clientId+ '&scope=' + scope;
