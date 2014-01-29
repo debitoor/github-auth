@@ -1,12 +1,13 @@
 {
   "name": "github-auth",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
+  "repository": "https://github.com/e-conomic/github-auth",
   "dependencies": {
     "routil-cookie": "0.0.1",
     "cookie-signature": "1.0.1",
