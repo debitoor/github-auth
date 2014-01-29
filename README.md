@@ -35,6 +35,21 @@ var config = {
 app.use(githubAuth('github app id', 'github app secret', config));
 ```
 
+Another option is the `notLoggedIn` function. By default, the middleware will redirect you to
+the github OAuth login page for the application. But that's not that user friendly, so there
+is a callback function that can be set in the config parameter so that you can redirect the
+user to your own login page and then give them the link to github. Example:
+
+```js
+var config = {
+	users: ['sorribas', 'mafintosh', 'octocat'],
+	notLoggedIn: function(req, res, ghurl) {
+		res.render('login', {ghLoginUrl: ghurl});
+	}
+};
+app.use(githubAuth('github app id', 'github app secret', config));
+```
+
 Also, you don't have to use this module with connect or express. You could just use it in your
 regular node http server like this.
 
