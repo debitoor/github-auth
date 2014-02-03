@@ -55,7 +55,7 @@ module.exports = function(clientId, clientSecret, config) {
 			if (!Array.isArray(json)) return callback(null, false);
 			var teamNames = json.map(function(obj) { return obj.slug; });
 			var orgLogins = json.map(function(obj) { return obj.organization.login; });
-			var authorized = teamNames.indexOf(config.team) !== -1 && orgLogins.indexOf(config.organization) !==1;
+			var authorized = teamNames.indexOf(config.team) !== -1 && orgLogins.indexOf(config.organization) !== -1;
 
 			callback(null, authorized);
 		});
@@ -77,7 +77,7 @@ module.exports = function(clientId, clientSecret, config) {
 
 			if (!Array.isArray(json)) return callback(null, false);
 			var orgLogins = json.map(function(obj) { return obj.login; });
-			var authorized = orgLogins.indexOf(config.organization) !==1;
+			var authorized = orgLogins.indexOf(config.organization) !== -1;
 
 			callback(null, authorized);
 		});
