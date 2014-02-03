@@ -107,7 +107,7 @@ module.exports = function(clientId, clientSecret, config) {
 					if (err) return next(err);
 
 					var checks = [];
-					if (config.users) checks.push(function(cb) { cb(null, config.users.indexOf(ghusr) !== 1); });
+					if (config.users) checks.push(function(cb) { cb(null, config.users.indexOf(ghusr) !== -1); });
 					if (config.team) checks.push(function(cb) { isInTeam(accessToken, cb); });
 					if (config.team) checks.push(function(cb) { isInOrganization(accessToken, cb); });
 
