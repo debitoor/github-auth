@@ -15,7 +15,7 @@ var redirect = function(url, response) {
 };
 
 module.exports = function(clientId, clientSecret, config) {
-	var scope = (config.team || config.organization)  ? 'user' : 'public';
+	var scope = (config.team)  ? 'user' : 'public';
 	var secret = config.secret || 'asdasd123123';
 	var userAgent = config.ua || 'github-auth';
 
@@ -109,7 +109,7 @@ module.exports = function(clientId, clientSecret, config) {
 					var checks = [];
 					if (config.users) checks.push(function(cb) { cb(null, config.users.indexOf(ghusr) !== -1); });
 					if (config.team) checks.push(function(cb) { isInTeam(accessToken, cb); });
-					if (config.team) checks.push(function(cb) { isInOrganization(accessToken, cb); });
+					if (config.organization) checks.push(function(cb) { isInOrganization(accessToken, cb); });
 
 					async.parallel(checks, function(err, results) {
 						if (err) return next(err);
