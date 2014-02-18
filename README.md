@@ -50,6 +50,25 @@ var config = {
 app.use(githubAuth('github app id', 'github app secret', config));
 ```
 
+To get the users in a team with the github API you need the full write access on the user
+profile, which is not really nice. You can avoid this by passing some github credentials 
+with access to the team to the module so it uses basic HTTP auth.
+
+```js
+githubAuth = require('github-auth');
+
+var config = {
+	team: 'some-team',
+	organization: 'my-company',
+	credentials: {
+		user: 'myghuser',
+		pass: 'mypass'
+	}
+};
+app.use(githubAuth('github app id', 'github app secret', config));
+
+```
+
 Also, you don't have to use this module with connect or express. You could just use it in your
 regular node http server like this.
 
@@ -68,3 +87,5 @@ http.createServer(funcition(request, response) {
 });
 
 ```
+
+
