@@ -55,7 +55,6 @@ module.exports = function(clientId, clientSecret, config) {
 				return cb(new Error(body), null);
 			}
 
-			console.log(teams);
 			var teamId = teams.filter(function(x) {return x.name === config.team;})[0].id;
 			cb(null, teamId);
 		});
