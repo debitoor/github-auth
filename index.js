@@ -184,7 +184,9 @@ module.exports = function(clientId, clientSecret, config) {
 						});
 
 						if (auth) {
-							setCookie(res, cookieName, cookieSign.sign(ghusr, secret));
+							var opts = {};
+							if (config.maxAge) opts.expires = new Date(Date.now() + config.maxAge);
+							setCookie(res, cookieName, cookieSign.sign(ghusr, secret), opts);
 							next();
 						} else {
 							response.statusCode = 403;

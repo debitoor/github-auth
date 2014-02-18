@@ -88,4 +88,6 @@ http.createServer(funcition(request, response) {
 
 ```
 
+## Max age
 
+You can add a `maxAge` key to the option object so that it will set it to the cookie used by the middleware.
