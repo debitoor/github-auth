@@ -155,14 +155,16 @@ module.exports = function(clientId, clientSecret, config) {
 		authenticate: function(req, res, next) {
 			var cookie = getCookie(req, cookieName);
 			var val = cookie ? cookieSign.unsign(cookie, secret): false;
+			req.github = {};
 			if (val) {
-				req.authenticated = true;
+				req.github.authenticated = true;
+				req.github.user = val;
 				return next();
 			}
 			var u = url.parse(req.url, true);
 			if (!u.query.code) {
 				if (config.autologin) return redirect(ghUrl, res);
-				req.authenticated = false;
+				delete req.github;
 				return next();
 			}
 			request.post('https://github.com/login/oauth/access_token',	{
@@ -196,13 +198,15 @@ module.exports = function(clientId, clientSecret, config) {
 						});
 
 						if (!auth) {
-							req.authenticated = false;
+							req.github.authenticated = false;
+							req.github.user = ghusr;
 							return next();
 						}
 						var opts = {};
 						if (config.maxAge) opts.expires = new Date(Date.now() + config.maxAge);
 						setCookie(res, cookieName, cookieSign.sign(ghusr, secret), opts);
-						req.authenticated = true;
+						req.github.user = ghusr;
+						req.github.authenticated = true;
 						next();
 					});
 				});
