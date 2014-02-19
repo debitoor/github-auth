@@ -19,9 +19,10 @@ githubAuth = require('github-auth');
 
 var config = {
 	team: 'some-team',
-	organization: 'my-company'
+	organization: 'my-company',
+	autologin: true // This automatically redirects you to github to login.
 };
-app.use(githubAuth('github app id', 'github app secret', config));
+app.use(githubAuth('github app id', 'github app secret', config).authenticate);
 ```
 That will validate that the user belongs to the 'some-team' team of the 'my-company' organization on github.
 
@@ -32,22 +33,16 @@ githubAuth = require('github-auth');
 var config = {
 	users: ['sorribas', 'mafintosh', 'octocat']
 };
-app.use(githubAuth('github app id', 'github app secret', config));
+app.use(githubAuth('github app id', 'github app secret', config).authenticate);
 ```
 
-Another option is the `notLoggedIn` function. By default, the middleware will redirect you to
-the github OAuth login page for the application. But that's not that user friendly, so there
-is a callback function that can be set in the config parameter so that you can redirect the
-user to your own login page and then give them the link to github. Example:
+The authenticate middleware sets the `req.authenticated` property so you check and 
+decide what to do with the unathenticated users.
+
+You also have the `.login` middleware which redirects you to github.
 
 ```js
-var config = {
-	users: ['sorribas', 'mafintosh', 'octocat'],
-	notLoggedIn: function(req, res, ghurl) {
-		res.render('login', {ghLoginUrl: ghurl});
-	}
-};
-app.use(githubAuth('github app id', 'github app secret', config));
+app.get('ghlohin', githubAuth.login);
 ```
 
 To get the users in a team with the github API you need the full write access on the user
@@ -65,7 +60,7 @@ var config = {
 		pass: 'mypass'
 	}
 };
-app.use(githubAuth('github app id', 'github app secret', config));
+app.use(githubAuth('github app id', 'github app secret', config).authenticate);
 
 ```
 
@@ -79,7 +74,7 @@ http.createServer(funcition(request, response) {
 		team: 'some-team',
 		organization: 'my-company'
 	};
-	githubAuth('github app id', 'github app secret', config)(request, response, function(err) {
+	githubAuth('github app id', 'github app secret', config).authenticate(request, response, function(err) {
 		if(!err) return response.end(err);
 
 		// your http code here
