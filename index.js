@@ -151,6 +151,10 @@ module.exports = function(clientId, clientSecret, config) {
 		redirect(ghUrl, res);
 	};
 
+	var logout = function(req, res, next) {
+		setCookie(res, cookieName, '');
+	};
+
 	return {
 		authenticate: function(req, res, next) {
 			var cookie = getCookie(req, cookieName);
@@ -213,7 +217,8 @@ module.exports = function(clientId, clientSecret, config) {
 			});
 		},
 		login: login,
-		loginUrl: ghUrl
+		loginUrl: ghUrl,
+		logout: logout
 	};
 };
 
