@@ -145,12 +145,26 @@ module.exports = function(clientId, clientSecret, config) {
 		});
 	};
 
-	return function(req, res, next) {
-		var cookie = getCookie(req, cookieName);
-		var val = cookie ? cookieSign.unsign(cookie, secret): false;
-		if (val) return next();
-		var u = url.parse(req.url, true);
-		if (u.query.code) {
+	var ghUrl = 'https://github.com/login/oauth/authorize?client_id='+clientId+ '&scope=' + scope;
+
+	var login = function(req, res, next) {
+		redirect(ghUrl, res);
+	};
+
+	return {
+		authenticate: function(req, res, next) {
+			var cookie = getCookie(req, cookieName);
+			var val = cookie ? cookieSign.unsign(cookie, secret): false;
+			if (val) {
+				request.authenticated = true;
+				return next();
+			}
+			var u = url.parse(req.url, true);
+			if (!u.query.code) {
+				if (config.autologin) return redirect(ghUrl, res);
+				request.authenticated = false;
+				return next();
+			}
 			request.post('https://github.com/login/oauth/access_token',	{
 				headers: {
 					'User-Agent': userAgent
@@ -177,30 +191,25 @@ module.exports = function(clientId, clientSecret, config) {
 						if (err) return next(err);
 						if (results.length === 0) return next(new Error('You have to add either users, team, or organizations to the config'));
 
-						var auth = true;
-						var uname;
-						results.forEach(function(el) {
-							if (!el) auth = false;
+						var auth = results.every(function(el) {
+							return el;
 						});
 
-						if (auth) {
-							var opts = {};
-							if (config.maxAge) opts.expires = new Date(Date.now() + config.maxAge);
-							setCookie(res, cookieName, cookieSign.sign(ghusr, secret), opts);
-							next();
-						} else {
-							response.statusCode = 403;
-							res.end('User not authorized');
+						if (!auth) {
+							request.authenticated = false;
+							return next();
 						}
+						var opts = {};
+						if (config.maxAge) opts.expires = new Date(Date.now() + config.maxAge);
+						setCookie(res, cookieName, cookieSign.sign(ghusr, secret), opts);
+						request.authenticated = true;
+						next();
 					});
 				});
-				
 			});
-		} else {
-			var ghUrl = 'https://github.com/login/oauth/authorize?client_id='+clientId+ '&scope=' + scope;
-			if (config.notLoggedIn) return config.notLoggedIn(req, res, ghUrl);
-			redirect(ghUrl, res);
-		}
+		},
+		login: login,
+		loginUrl: ghUrl
 	};
 };
 
