@@ -153,6 +153,7 @@ module.exports = function(clientId, clientSecret, config) {
 
 	var logout = function(req, res, next) {
 		setCookie(res, cookieName, '');
+		next();
 	};
 
 	return {
