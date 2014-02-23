@@ -69,7 +69,7 @@ regular node http server like this.
 
 ```js
 
-http.createServer(funcition(request, response) {
+http.createServer(function(request, response) {
 	var config = {
 		team: 'some-team',
 		organization: 'my-company'
@@ -83,6 +83,7 @@ http.createServer(funcition(request, response) {
 
 ```
 
-## Max age
+## Configuration
 
-You can add a `maxAge` key to the option object so that it will set it to the cookie used by the middleware.
+ - `maxAge`: Sets the maxAge of the authentication cookie (milliseconds). Defaults to set a session cookie.
+ - `secret`: The module uses a random secret to sign the authentication cookie. If you want to manage this yourself you can do it by providing it as part of the config.
