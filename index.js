@@ -18,6 +18,7 @@ module.exports = function(clientId, clientSecret, config) {
 	var scope = (config.team && !config.credentials)  ? 'user' : 'public';
 	var secret = config.secret || Math.random().toString();
 	var userAgent = config.ua || 'github-auth';
+	var redirectUri = config.redirectUri || '';
 
 	var getUser = function(accessToken, callback) {
 		request('https://api.github.com/user?access_token='+accessToken, {
@@ -29,7 +30,7 @@ module.exports = function(clientId, clientSecret, config) {
 
 			var json;
 			try { json = JSON.parse(body); }
-			catch(e) { 
+			catch(e) {
 				return callback(new Error(body), null);
 			}
 			callback(null, json.login);
@@ -51,7 +52,7 @@ module.exports = function(clientId, clientSecret, config) {
 			if (res.statusCode >= 300) return cb(new Error('Bad credentials'));
 			var teams;
 			try { teams = JSON.parse(body); }
-			catch(e) { 
+			catch(e) {
 				return cb(new Error(body), null);
 			}
 
@@ -82,7 +83,7 @@ module.exports = function(clientId, clientSecret, config) {
 
 				var json;
 				try { json = JSON.parse(body); }
-				catch(e) { 
+				catch(e) {
 					return callback(new Error(body), null);
 				}
 
@@ -94,7 +95,7 @@ module.exports = function(clientId, clientSecret, config) {
 				callback(null, authorized);
 			});
 		}
-		
+
 	};
 
 	var isInOrganization = function(accessToken, callback) {
@@ -107,7 +108,7 @@ module.exports = function(clientId, clientSecret, config) {
 
 			var json;
 			try { json = JSON.parse(body); }
-			catch(e) { 
+			catch(e) {
 				return callback(new Error(body), null);
 			}
 
@@ -126,9 +127,9 @@ module.exports = function(clientId, clientSecret, config) {
 	var getUsersOnTeam = function(teamId, cb) {
 		if ((new Date().getTime() - lastGhUpdate) < tenMinutes) return cb(null, authUsers);
 		var opts = {
-			url: 'https://api.github.com/teams/'+teamId+'/members', 
+			url: 'https://api.github.com/teams/'+teamId+'/members',
 			headers: {
-				'User-Agent': userAgent 
+				'User-Agent': userAgent
 			},
 			auth: {
 				'user': config.credentials.user,
@@ -145,7 +146,7 @@ module.exports = function(clientId, clientSecret, config) {
 		});
 	};
 
-	var ghUrl = 'https://github.com/login/oauth/authorize?client_id='+clientId+ '&scope=' + scope;
+	var ghUrl = 'https://github.com/login/oauth/authorize?client_id='+clientId+ '&scope=' + scope + '&redirect_uri=' + redirectUri;
 
 	var login = function(req, res, next) {
 		redirect(ghUrl, res);
