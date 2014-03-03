@@ -28,7 +28,7 @@ That will validate that the user belongs to the 'some-team' team of the 'my-comp
 
 You can also use a whitelist of users, like this.
 ```js
-githubAuth = require('github-auth');
+var githubAuth = require('github-auth');
 
 var config = {
 	users: ['sorribas', 'mafintosh', 'octocat']
@@ -50,7 +50,7 @@ profile, which is not really nice. You can avoid this by passing some github cre
 with access to the team to the module so it uses basic HTTP auth.
 
 ```js
-githubAuth = require('github-auth');
+var githubAuth = require('github-auth');
 
 var config = {
 	team: 'some-team',
