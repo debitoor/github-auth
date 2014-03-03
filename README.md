@@ -15,7 +15,7 @@ npm install github-auth
 You can use the middleware on a connect/express app like this.
 
 ```js
-githubAuth = require('github-auth');
+var githubAuth = require('github-auth');
 
 var config = {
 	team: 'some-team',
