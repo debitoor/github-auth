@@ -19,13 +19,34 @@ module.exports = function(clientId, clientSecret, config) {
 	var secret = config.secret || Math.random().toString();
 	var userAgent = config.ua || 'github-auth';
 	var redirectUri = config.redirectUri || '';
+	var accessToken;
 
-	var getUser = function(accessToken, callback) {
-		request('https://api.github.com/user?access_token='+accessToken, {
-			headers: {
-				'User-Agent': userAgent
-			}
-		}, function(err, res, body) {
+	var getRequest = function(url, forceOauth, cb) {
+		if (typeof forceOauth === 'function') {
+			cb = forceOauth;
+			forceOauth = false;
+		}
+		if (config.credentials && !forceOauth) {
+			request(url, {
+				headers: {
+					'User-Agent': userAgent
+				},
+				auth: {
+					user: config.credentials.user,
+					pass: config.credentials.pass
+				}
+			}, cb);
+		} else {
+			request(url + '?access_token=' + accessToken, {
+				headers: {
+					'User-Agent': userAgent
+				}
+			}, cb);
+		}
+	};
+
+	var getUser = function(callback) {
+		getRequest('https://api.github.com/user', true, function(err, res, body) {
 			if (err) return callback(err);
 
 			var json;
@@ -39,15 +60,7 @@ module.exports = function(clientId, clientSecret, config) {
 
 	var teamId;
 	var getTeamId = function(cb) {
-		request('https://api.github.com/orgs/'+ config.organization + '/teams',{
-			headers: {
-				'User-Agent': userAgent
-			},
-			auth: {
-				user: config.credentials.user,
-				pass: config.credentials.pass
-			}
-		}, function(err, res, body) {
+		getRequest('https://api.github.com/orgs/'+ config.organization + '/teams', function(err, res, body) {
 			if (err) return cb(err);
 			if (res.statusCode >= 300) return cb(new Error('Bad credentials'));
 			var teams;
@@ -61,7 +74,7 @@ module.exports = function(clientId, clientSecret, config) {
 		});
 	};
 
-	var isInTeam = function(accessToken, ghusr, callback) {
+	var isInTeam = function(ghusr, callback) {
 		if (!config.organization) return callback(new Error('The organization is required to validate the team.'));
 		if (!config.team) return callback(new Error('The team is required.'));
 
@@ -98,12 +111,8 @@ module.exports = function(clientId, clientSecret, config) {
 
 	};
 
-	var isInOrganization = function(accessToken, callback) {
-		request('https://api.github.com/user/orgs?access_token=' + accessToken, {
-			headers: {
-				'User-Agent': userAgent
-			}
-		}, function(err, res, body) {
+	var isInOrganization = function(callback) {
+		getRequest('https://api.github.com/user/orgs', function(err, res, body) {
 			if (err) return callback(err);
 
 			var json;
@@ -126,18 +135,8 @@ module.exports = function(clientId, clientSecret, config) {
 
 	var getUsersOnTeam = function(teamId, cb) {
 		if ((new Date().getTime() - lastGhUpdate) < tenMinutes) return cb(null, authUsers);
-		var opts = {
-			url: 'https://api.github.com/teams/'+teamId+'/members',
-			headers: {
-				'User-Agent': userAgent
-			},
-			auth: {
-				'user': config.credentials.user,
-				'pass': config.credentials.pass
-			}
-		};
 		lastGhUpdate = new Date().getTime();
-		request.get(opts, function(err, res, body) {
+		getRequest('https://api.github.com/teams/'+teamId+'/members', function(err, res, body) {
 			if (err) return cb(err);
 			if (res.statusCode >= 300) return cb(new Error('Bad credentials'));
 			var usrsObj = JSON.parse(body);
@@ -185,15 +184,15 @@ module.exports = function(clientId, clientSecret, config) {
 			}, function(err, response, body) {
 				if (err) return next(err);
 				var resp = url.parse('/?'+body, true);
-				var accessToken = resp.query.access_token;
+				accessToken = resp.query.access_token;
 
-				getUser(accessToken, function(err, ghusr) {
+				getUser(function(err, ghusr) {
 					if (err) return next(err);
 
 					var checks = [];
 					if (config.users) checks.push(function(cb) { cb(null, config.users.indexOf(ghusr) !== -1); });
-					if (config.team) checks.push(function(cb) { isInTeam(accessToken, ghusr, cb); });
-					if (config.organization) checks.push(function(cb) { isInOrganization(accessToken, cb); });
+					if (config.team) checks.push(function(cb) { isInTeam(ghusr, cb); });
+					if (config.organization) checks.push(function(cb) { isInOrganization(cb); });
 
 					async.parallel(checks, function(err, results) {
 						if (err) return next(err);
