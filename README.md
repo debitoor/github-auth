@@ -33,16 +33,20 @@ var githubAuth = require('github-auth');
 var config = {
 	users: ['sorribas', 'mafintosh', 'octocat']
 };
-app.use(githubAuth('github app id', 'github app secret', config).authenticate);
+var gh = githubAuth('github app id', 'github app secret', config);
+app.use(gh.authenticate);
 ```
 
-The authenticate middleware sets the `req.authenticated` property so you check and 
-decide what to do with the unathenticated users.
+The authenticate middleware sets the `req.github` property to an object which contains
+`user` and `authenticated`. That way you can decide what to de with unauthenticated users
+(redeirect them to the login page for example). If the `req.github` object is not present
+it means that the user has not tried to login, so you should redirect them to the github
+login page which is on `gh.loginUrl`
 
-You also have the `.login` middleware which redirects you to github.
+You can also use the `.login` middleware which redirects you to the github oauth login page.
 
 ```js
-app.get('ghlohin', githubAuth.login);
+app.get('ghlohin', gh.login);
 ```
 
 To get the users in a team with the github API you need the full write access on the user
