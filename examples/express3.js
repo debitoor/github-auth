@@ -1,6 +1,5 @@
 var express = require('express');
 var http = require('http');
-var path = require('path');
 var githubAuth = require('github-auth');
 var gh = githubAuth('appid', 'appsecret', {
 	organization: 'myorganization',
