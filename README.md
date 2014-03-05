@@ -22,7 +22,8 @@ var config = {
 	organization: 'my-company',
 	autologin: true // This automatically redirects you to github to login.
 };
-app.use(githubAuth('github app id', 'github app secret', config).authenticate);
+var gh = githubAuth('github app id', 'github app secret', config);
+app.use(gh.authenticate);
 ```
 That will validate that the user belongs to the 'some-team' team of the 'my-company' organization on github.
 
@@ -38,7 +39,7 @@ app.use(gh.authenticate);
 ```
 
 The authenticate middleware sets the `req.github` property to an object which contains
-`user` and `authenticated`. That way you can decide what to de with unauthenticated users
+`user` and `authenticated`. That way you can decide what to do with unauthenticated users
 (redeirect them to the login page for example). If the `req.github` object is not present
 it means that the user has not tried to login, so you should redirect them to the github
 login page which is on `gh.loginUrl`
@@ -91,3 +92,9 @@ http.createServer(function(request, response) {
 
  - `maxAge`: Sets the maxAge of the authentication cookie (milliseconds). Defaults to set a session cookie.
  - `secret`: The module uses a random secret to sign the authentication cookie. If you want to manage this yourself you can do it by providing it as part of the config.
+
+
+# Examples
+
+There is an example in the examples folder using Express 3. To run it you need to install express 3.x and 
+github-auth.
