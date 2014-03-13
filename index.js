@@ -157,6 +157,9 @@ module.exports = function(clientId, clientSecret, config) {
 	};
 
 	return {
+		decodeCookie: function(cookie) {
+			return cookieSign.unsign(cookie, secret) || null;
+		},
 		authenticate: function(req, res, next) {
 			var cookie = getCookie(req, cookieName);
 			var val = cookie ? cookieSign.unsign(cookie, secret): false;
