@@ -159,6 +159,7 @@ module.exports = function(clientId, clientSecret, config) {
 	return {
 		decodeCookie: function(cookie) {
 			var val = cookie.match('(^|; )'+'gh_uname'+'=([^;]*)')[2];
+			unescape(val);
 			return cookieSign.unsign(val, secret) || null;
 		},
 		authenticate: function(req, res, next) {
