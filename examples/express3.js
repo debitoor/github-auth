@@ -16,12 +16,10 @@ app.set('port', process.env.PORT || 3000);
 app.use(gh.authenticate);
 app.use(app.router);
 
-app.get('/login', function(req, res) {
-	res.send('You are not logged in <br /><a href="'+gh.loginUrl+'">Login</a>');
-});
+app.get('/login', gh.login);
 
 app.get('*', function(req, res, next) {
-	if (!req.github) return res.redirect('/login');
+	if (!req.github) return res.send('<a href="/login">Please login</a>');
 	if (!req.github.authenticated) return res.send(404, 'YOU SHALL NOT PASS');
 	next();
 });
