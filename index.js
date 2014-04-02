@@ -14,12 +14,20 @@ var redirect = function(url, response) {
 	response.end();
 };
 
+var toFunction = function(str) {
+	return function() {
+		return str;
+	};
+};
+
 module.exports = function(clientId, clientSecret, config) {
 	var scope = (config.team && !config.credentials)  ? 'user' : 'public';
 	var secret = config.secret || Math.random().toString();
 	var userAgent = config.ua || 'github-auth';
 	var redirectUri = config.redirectUri || '';
 	var accessToken;
+
+	if (typeof redirectUri !== 'function') redirectUri = toFunction(redirectUri);
 
 	var getRequest = function(url, forceOauth, cb) {
 		if (typeof forceOauth === 'function') {
@@ -145,10 +153,12 @@ module.exports = function(clientId, clientSecret, config) {
 		});
 	};
 
-	var ghUrl = 'https://github.com/login/oauth/authorize?client_id='+clientId+ '&scope=' + scope + '&redirect_uri=' + redirectUri;
+	var ghUrl = function(req) {
+		return 'https://github.com/login/oauth/authorize?client_id='+clientId+ '&scope=' + scope + '&redirect_uri=' + redirectUri(req);
+	};
 
 	var login = function(req, res, next) {
-		redirect(ghUrl, res);
+		redirect(ghUrl(req), res);
 	};
 
 	var logout = function(req, res, next) {
@@ -173,7 +183,7 @@ module.exports = function(clientId, clientSecret, config) {
 			}
 			var u = url.parse(req.url, true);
 			if (!u.query.code) {
-				if (config.autologin) return redirect(ghUrl, res);
+				if (config.autologin) return redirect(ghUrl(req), res);
 				delete req.github;
 				return next();
 			}
@@ -223,7 +233,6 @@ module.exports = function(clientId, clientSecret, config) {
 			});
 		},
 		login: login,
-		loginUrl: ghUrl,
 		logout: logout
 	};
 };
