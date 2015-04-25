@@ -21,7 +21,7 @@ var toFunction = function(str) {
 };
 
 module.exports = function(clientId, clientSecret, config) {
-	var scope = (config.team && !config.credentials)  ? 'user' : 'public';
+	var scope = ((config.team || config.organization) && !config.credentials)  ? 'user' : 'public';
 	var secret = config.secret || Math.random().toString();
 	var userAgent = config.ua || 'github-auth';
 	var redirectUri = config.redirectUri || '';
