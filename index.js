@@ -176,6 +176,11 @@ module.exports = function(clientId, clientSecret, config) {
 		authenticate: function(req, res, next) {
 			var cookie = getCookie(req, cookieName);
 			var val = cookie ? cookieSign.unsign(cookie, secret): false;
+			var updateCode = function () {
+				if (config.autologin) return redirect(ghUrl(req), res);
+				delete req.github;
+				return next();
+			};
 			req.github = {};
 			if (val) {
 				req.github.authenticated = true;
@@ -184,9 +189,7 @@ module.exports = function(clientId, clientSecret, config) {
 			}
 			var u = url.parse(req.url, true);
 			if (!u.query.code) {
-				if (config.autologin) return redirect(ghUrl(req), res);
-				delete req.github;
-				return next();
+				return updateCode();
 			}
 			request.post('https://github.com/login/oauth/access_token',	{
 				headers: {
@@ -200,6 +203,9 @@ module.exports = function(clientId, clientSecret, config) {
 			}, function(err, response, body) {
 				if (err) return next(err);
 				var resp = url.parse('/?'+body, true);
+				if (!resp.query.access_token) {
+					return updateCode();
+				}
 				accessToken = resp.query.access_token;
 
 				getUser(function(err, ghusr) {
