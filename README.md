@@ -20,7 +20,8 @@ var githubAuth = require('github-auth');
 var config = {
 	team: 'some-team',
 	organization: 'my-company',
-	autologin: true // This automatically redirects you to github to login.
+	autologin: true, // This automatically redirects you to github to login.
+	hideAuthInternals: true // After authentication this redirects to original url but without query parameters 'code' and 'state'.
 };
 var gh = githubAuth('github app id', 'github app secret', config);
 app.use(gh.authenticate);
@@ -80,7 +81,7 @@ http.createServer(function(request, response) {
 		organization: 'my-company'
 	};
 	githubAuth('github app id', 'github app secret', config).authenticate(request, response, function(err) {
-		if(!err) return response.end(err);
+		if (err) return response.end(err);
 
 		// your http code here
 	});
