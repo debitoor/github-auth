@@ -3,6 +3,7 @@ var url = require('url');
 var request = require('request');
 var async = require('async');
 var cookieSign = require('cookie-signature');
+var deepcopy = require('deepcopy');
 
 var getCookie = routilCookie.getCookie;
 var setCookie = routilCookie.setCookie;
@@ -24,6 +25,18 @@ var defaultRandomSecret = Math.random().toString();
 var ghSecretState = Math.random().toString();
 
 module.exports = function(clientId, clientSecret, config) {
+	// We don't want to accidentally mutate the object we were passed.
+	config = deepcopy(config);
+
+	// GitHub enforces lowercase names for organizations and teams.
+	// The checks later on are simplified by normalizing here.
+	if(config.organization) {
+		config.organization = config.organization.toLowerCase();
+	}
+	if(config.team) {
+		config.team = config.team.toLowerCase();
+	}
+
 	var scope = ((config.team || config.organization) && !config.credentials)  ? 'user' : 'public';
 	var secret = config.secret || defaultRandomSecret;
 	var userAgent = config.ua || 'github-auth';
