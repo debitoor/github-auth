@@ -200,7 +200,7 @@ module.exports = function(clientId, clientSecret, config) {
 				return next();
 			}
 			var u = url.parse(req.url, true);
-			if (!u.query.code) {
+			if (!u.query.code || u.query.state !== ghSecretState) {
 				return updateCode();
 			}
 			request.post('https://github.com/login/oauth/access_token',	{
