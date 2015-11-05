@@ -1,4 +1,4 @@
-# github-auth
+# github-auth [![npm version](https://badge.fury.io/js/github-auth.svg)](https://badge.fury.io/js/github-auth) [![Dependency Status](https://david-dm.org/debitoor/github-auth.svg)](https://david-dm.org/debitoor/github-auth)
 
 A middleware for github authentication.
 
