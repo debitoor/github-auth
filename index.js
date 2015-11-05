@@ -20,9 +20,12 @@ var toFunction = function(str) {
 	};
 };
 
+var defaultRandomSecret = Math.random().toString();
+var ghSecretState = Math.random().toString();
+
 module.exports = function(clientId, clientSecret, config) {
 	var scope = ((config.team || config.organization) && !config.credentials)  ? 'user' : 'public';
-	var secret = config.secret || Math.random().toString();
+	var secret = config.secret || defaultRandomSecret;
 	var userAgent = config.ua || 'github-auth';
 	var redirectUri = config.redirectUri || '';
 	var accessToken;
@@ -154,7 +157,16 @@ module.exports = function(clientId, clientSecret, config) {
 	};
 
 	var ghUrl = function(req) {
-		return 'https://github.com/login/oauth/authorize?client_id='+clientId+ '&scope=' + scope + '&redirect_uri=' + redirectUri(req);
+		return 'https://github.com/login/oauth/authorize?client_id=' + clientId + '&scope=' + scope +
+			'&redirect_uri=' + redirectUri(req) + '&state=' + ghSecretState;
+	};
+
+	var cleanUrl = function(req) {
+		var u = url.parse(req.url, true);
+		delete u.search;
+		delete u.query.code;
+		delete u.query.state;
+		return url.format(u);
 	};
 
 	var login = function(req, res, next) {
@@ -198,7 +210,8 @@ module.exports = function(clientId, clientSecret, config) {
 				form: {
 					client_id: clientId,
 					client_secret: clientSecret,
-					code: u.query.code
+					code: u.query.code,
+					state: ghSecretState
 				}
 			}, function(err, response, body) {
 				if (err) return next(err);
@@ -227,6 +240,7 @@ module.exports = function(clientId, clientSecret, config) {
 						if (!auth) {
 							req.github.authenticated = false;
 							req.github.user = ghusr;
+							if (config.autologin) return redirect(ghUrl(req), res);
 							return next();
 						}
 						var opts = {};
@@ -234,6 +248,9 @@ module.exports = function(clientId, clientSecret, config) {
 						setCookie(res, cookieName, cookieSign.sign(ghusr, secret), opts);
 						req.github.user = ghusr;
 						req.github.authenticated = true;
+						if (config.hideAuthInternals && (u.query.code || u.query.state)) {
+							return redirect(cleanUrl(req), res);
+						}
 						next();
 					});
 				});
