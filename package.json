@@ -9,10 +9,10 @@
   "author": "",
   "repository": "https://github.com/e-conomic/github-auth",
   "dependencies": {
-    "async": "0.2.10",
-    "cookie-signature": "1.0.1",
-    "deepcopy": "^0.5.0",
-    "request": "2.33.0",
+    "async": "^2.1.2",
+    "cookie-signature": "^1.0.6",
+    "deepcopy": "^0.6.3",
+    "request": "^2.75.0",
     "routil-cookie": "0.0.1"
   }
 }
