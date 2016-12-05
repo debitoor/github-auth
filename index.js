@@ -37,7 +37,7 @@ module.exports = function(clientId, clientSecret, config) {
 		config.team = config.team.toLowerCase();
 	}
 
-	var scope = ((config.team || config.organization) && !config.credentials)  ? 'user' : 'public';
+	var scope = (config.team || config.organization)  ? 'read:org' : '';
 	var secret = config.secret || defaultRandomSecret;
 	var userAgent = config.ua || 'github-auth';
 	var redirectUri = config.redirectUri || '';
@@ -50,23 +50,11 @@ module.exports = function(clientId, clientSecret, config) {
 			cb = forceOauth;
 			forceOauth = false;
 		}
-		if (config.credentials && !forceOauth) {
-			request(url, {
-				headers: {
-					'User-Agent': userAgent
-				},
-				auth: {
-					user: config.credentials.user,
-					pass: config.credentials.pass
-				}
-			}, cb);
-		} else {
-			request(url + '?access_token=' + accessToken, {
-				headers: {
-					'User-Agent': userAgent
-				}
-			}, cb);
-		}
+		request(url + '?access_token=' + accessToken, {
+			headers: {
+				'User-Agent': userAgent
+			}
+		}, cb);
 	};
 
 	var getUser = function(callback) {
@@ -86,6 +74,7 @@ module.exports = function(clientId, clientSecret, config) {
 	var getTeamId = function(cb) {
 		getRequest('https://api.github.com/orgs/'+ config.organization + '/teams', function(err, res, body) {
 			if (err) return cb(err);
+			if (res.statusCode === 403) return cb(false);
 			if (res.statusCode >= 300) return cb(new Error('Bad credentials'));
 			var teams;
 			try { teams = JSON.parse(body); }
@@ -102,36 +91,13 @@ module.exports = function(clientId, clientSecret, config) {
 		if (!config.organization) return callback(new Error('The organization is required to validate the team.'));
 		if (!config.team) return callback(new Error('The team is required.'));
 
-		if (config.credentials) {
-			getTeamId(function(err, tid) {
+		getTeamId(function(err, tid) {
+			if (err) return callback(err);
+			getUsersOnTeam(tid, function(err, users) {
 				if (err) return callback(err);
-				getUsersOnTeam(tid, function(err, users) {
-					if (err) return callback(err);
-					callback(null, users.indexOf(ghusr) !== -1);
-				});
+				callback(null, users.indexOf(ghusr) !== -1);
 			});
-		} else {
-			request('https://api.github.com/user/teams?access_token=' + accessToken, {
-				headers: {
-					'User-Agent': userAgent
-				}
-			}, function(err, res, body) {
-				if (err) return callback(err);
-
-				var json;
-				try { json = JSON.parse(body); }
-				catch(e) {
-					return callback(new Error(body), null);
-				}
-
-				if (!Array.isArray(json)) return callback(null, false);
-				var teamNames = json.map(function(obj) { return obj.slug; });
-				var orgLogins = json.map(function(obj) { return obj.organization.login; });
-				var authorized = teamNames.indexOf(config.team) !== -1 && orgLogins.indexOf(config.organization) !== -1;
-
-				callback(null, authorized);
-			});
-		}
+		});
 
 	};
 
