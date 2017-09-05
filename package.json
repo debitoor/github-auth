@@ -4,10 +4,10 @@
   "description": "connect compatible middleware for auth with github",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postversion": "git push && git push --tags"
   },
   "author": "",
-  "repository": "https://github.com/e-conomic/github-auth",
+  "repository": "https://github.com/debitoor/github-auth",
   "dependencies": {
     "async": "^2.1.2",
     "cookie-signature": "^1.0.6",
