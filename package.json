@@ -1,5 +1,5 @@
 {
-  "name": "github-auth",
+  "name": "@debitoor/github-auth",
   "version": "1.0.5",
   "description": "connect compatible middleware for auth with github",
   "main": "index.js",
