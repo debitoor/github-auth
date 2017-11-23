@@ -1,13 +1,13 @@
-var routilCookie = require('routil-cookie');
-var url = require('url');
-var request = require('request');
-var async = require('async');
-var cookieSign = require('cookie-signature');
-var deepcopy = require('deepcopy');
+const routilCookie = require('routil-cookie');
+const url = require('url');
+const async = require('async');
+const cookieSign = require('cookie-signature');
+const deepcopy = require('deepcopy');
+const rrs = require('request-retry-stream');
 
-var getCookie = routilCookie.getCookie;
-var setCookie = routilCookie.setCookie;
-var cookieName = 'gh_uname';
+const getCookie = routilCookie.getCookie;
+const setCookie = routilCookie.setCookie;
+const cookieName = 'gh_uname';
 
 var redirect = function(url, response) {
 	response.statusCode = 302;
@@ -51,7 +51,7 @@ module.exports = function(clientId, clientSecret, config) {
 			forceOauth = false;
 		}
 		if (config.credentials && !forceOauth) {
-			request(url, {
+			rrs(url, {
 				headers: {
 					'User-Agent': userAgent
 				},
@@ -61,7 +61,7 @@ module.exports = function(clientId, clientSecret, config) {
 				}
 			}, cb);
 		} else {
-			request(url + '?access_token=' + accessToken, {
+			rrs(url + '?access_token=' + accessToken, {
 				headers: {
 					'User-Agent': userAgent
 				}
@@ -72,21 +72,21 @@ module.exports = function(clientId, clientSecret, config) {
 	var getUser = function(callback) {
 		getRequest('https://api.github.com/user', true, function(err, res, body) {
 			if (err) return callback(err);
-
 			var json;
 			try { json = JSON.parse(body); }
 			catch(e) {
 				return callback(new Error(body), null);
 			}
+			if(typeof json.login !== 'string' || json.login === ''){
+				return callback(new Error(`GitHub User has no login, ${body}`), null);
+			}
 			callback(null, json.login);
 		});
 	};
 
-	var teamId;
 	var getTeamId = function(cb) {
 		getRequest('https://api.github.com/orgs/'+ config.organization + '/teams', function(err, res, body) {
 			if (err) return cb(err);
-			if (res.statusCode >= 300) return cb(new Error('Bad credentials'));
 			var teams;
 			try { teams = JSON.parse(body); }
 			catch(e) {
@@ -111,7 +111,7 @@ module.exports = function(clientId, clientSecret, config) {
 				});
 			});
 		} else {
-			request('https://api.github.com/user/teams?access_token=' + accessToken, {
+			rrs('https://api.github.com/user/teams?access_token=' + accessToken, {
 				headers: {
 					'User-Agent': userAgent
 				}
@@ -162,7 +162,6 @@ module.exports = function(clientId, clientSecret, config) {
 		lastGhUpdate = new Date().getTime();
 		getRequest('https://api.github.com/teams/'+teamId+'/members', function(err, res, body) {
 			if (err) return cb(err);
-			if (res.statusCode >= 300) return cb(new Error('Bad credentials'));
 			var usrsObj = JSON.parse(body);
 			authUsers = usrsObj.map(function(x) { return x.login; });
 			cb(null, authUsers);
@@ -216,7 +215,7 @@ module.exports = function(clientId, clientSecret, config) {
 			if (!u.query.code || u.query.state !== ghSecretState) {
 				return updateCode();
 			}
-			request.post('https://github.com/login/oauth/access_token',	{
+			rrs.post('https://github.com/login/oauth/access_token',	{
 				headers: {
 					'User-Agent': userAgent
 				},
