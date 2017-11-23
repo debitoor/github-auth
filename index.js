@@ -58,13 +58,15 @@ module.exports = function(clientId, clientSecret, config) {
 				auth: {
 					user: config.credentials.user,
 					pass: config.credentials.pass
-				}
+				},
+				timeout: 10000
 			}, cb);
 		} else {
 			rrs(url + '?access_token=' + accessToken, {
 				headers: {
 					'User-Agent': userAgent
-				}
+				},
+				timeout: 10000
 			}, cb);
 		}
 	};
@@ -114,7 +116,8 @@ module.exports = function(clientId, clientSecret, config) {
 			rrs('https://api.github.com/user/teams?access_token=' + accessToken, {
 				headers: {
 					'User-Agent': userAgent
-				}
+				},
+				timeout: 10000
 			}, function(err, res, body) {
 				if (err) return callback(err);
 
@@ -224,7 +227,8 @@ module.exports = function(clientId, clientSecret, config) {
 					client_secret: clientSecret,
 					code: u.query.code,
 					state: ghSecretState
-				}
+				},
+				timeout: 10000
 			}, function(err, response, body) {
 				if (err) return next(err);
 				var resp = url.parse('/?'+body, true);
