@@ -1,6 +1,6 @@
 {
   "name": "github-auth",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "connect compatible middleware for auth with github",
   "main": "index.js",
   "scripts": {
