@@ -4,6 +4,7 @@ const async = require('async');
 const cookieSign = require('cookie-signature');
 const deepcopy = require('deepcopy');
 const rrs = require('request-retry-stream');
+const crypto = require('crypto')
 
 const getCookie = routilCookie.getCookie;
 const setCookie = routilCookie.setCookie;
@@ -21,8 +22,8 @@ var toFunction = function (str) {
 	};
 };
 
-var defaultRandomSecret = Math.random().toString();
-var ghSecretState = Math.random().toString();
+var defaultRandomSecret = crypto.randomBytes(32).toString('hex');
+var ghSecretState = crypto.randomBytes(32).toString('hex');
 
 module.exports = function (clientId, clientSecret, config) {
 	// We don't want to accidentally mutate the object we were passed.
