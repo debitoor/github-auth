@@ -4,7 +4,7 @@ const async = require('async');
 const cookieSign = require('cookie-signature');
 const deepcopy = require('deepcopy');
 const rrs = require('request-retry-stream');
-const crypto = require('crypto')
+const crypto = require('crypto');
 
 const getCookie = routilCookie.getCookie;
 const setCookie = routilCookie.setCookie;
