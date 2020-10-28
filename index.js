@@ -64,9 +64,11 @@ module.exports = function (clientId, clientSecret, config) {
 			}, cb);
 		} else {
 			rrs.get({
-				url: url + '?access_token=' + accessToken,
+				//access_token removedfrom query parameter and is added to header
+				url: url,
 				headers: {
-					'User-Agent': userAgent
+					'User-Agent': userAgent,
+					'Authorization': 'token ' + accessToken
 				},
 				timeout: 10000
 			}, cb);
@@ -122,9 +124,11 @@ module.exports = function (clientId, clientSecret, config) {
 			});
 		} else {
 			rrs.get({
-				url: 'https://api.github.com/user/teams?access_token=' + accessToken,
+				//access_token removedfrom query parameter and is added to header				
+				url: 'https://api.github.com/user/teams',
 				headers: {
-					'User-Agent': userAgent
+					'User-Agent': userAgent,
+					'Authorization': 'token ' + accessToken
 				},
 				timeout: 10000
 			}, function (err, res, body) {
@@ -204,7 +208,6 @@ module.exports = function (clientId, clientSecret, config) {
 		delete u.query.state;
 		return url.format(u);
 	};
-
 	var login = function (req, res, next) {
 		redirect(ghUrl(req), res);
 	};
