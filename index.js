@@ -103,7 +103,7 @@ module.exports = function (clientId, clientSecret, config) {
 			}
 
 			var teamId = teams.filter(function (x) {
-				return x.name === config.team;
+				return x.name.toLowerCase() === config.team;
 			})[0].id;
 			cb(null, teamId);
 		});
@@ -168,7 +168,7 @@ module.exports = function (clientId, clientSecret, config) {
 
 			if (!Array.isArray(json)) return callback(null, false);
 			var orgLogins = json.map(function (obj) {
-				return obj.login;
+				return obj.login.toLowerCase();
 			});
 			var authorized = orgLogins.indexOf(config.organization) !== -1;
 
