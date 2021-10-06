@@ -64,9 +64,10 @@ module.exports = function (clientId, clientSecret, config) {
 			}, cb);
 		} else {
 			rrs.get({
-				url: url + '?access_token=' + accessToken,
+				url,
 				headers: {
-					'User-Agent': userAgent
+					'User-Agent': userAgent,
+					Authorization: 'token ' +accessToken
 				},
 				timeout: 10000
 			}, cb);
